@@ -48,11 +48,6 @@ class CoverScreen : AppCompatActivity() {
         outState.putParcelable(STATE, state)
     }
 
-    override fun onPause() {
-        viewModel.dispose()
-        super.onPause()
-    }
-
     private fun observeStoryFetching() {
         viewModel.isLoading.observe(this, Observer<Boolean> {
             if (it) coverProgressBar.show()

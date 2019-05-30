@@ -5,8 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.textingstory.domain.usecases.FetchStory
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class CoverScreenViewModel : ViewModel() {
+class CoverScreenViewModel : ViewModel(), CoroutineScope {
+    private var job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.IO + job
+
     private val _viewConfig = MutableLiveData<CoverScreen.ViewConfig>()
     val viewConfig: LiveData<CoverScreen.ViewConfig> = _viewConfig
 
@@ -17,15 +22,13 @@ class CoverScreenViewModel : ViewModel() {
     val error: LiveData<Throwable> = _error
 
     private val fetchStory = FetchStory()
-    private var fetchStoryJob: Job? = null
 
     init {
         fetchStory("scavengerhunt")
     }
 
     private fun fetchStory(uid: String) {
-        dispose()
-        fetchStoryJob = CoroutineScope(Dispatchers.IO).launch {
+        launch {
             _isLoading.postValue(true)
 
             val story = fetchStory.launch(uid)
@@ -47,7 +50,8 @@ class CoverScreenViewModel : ViewModel() {
         }
     }
 
-    fun dispose() {
-        fetchStoryJob?.cancel()
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 }
